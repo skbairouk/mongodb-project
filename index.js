@@ -153,14 +153,24 @@ app.get("/api/user/profile", auth, async (req, res) => {
 
 app.put("/api/user/edit", auth, async (req, res) => {
 
-    const { firstname, lastname, email } = req.body;
+    var updateUser = {
+        lastname: req.body.lastname,
+        firstname: req.body.firstname
+    }
 
-    const user = await User.findOneAndUpdate({ email }, { firstname, lastname });
+
+    const email = req.user.email;
+
+
+    const modifdUser = await User.findOneAndUpdate({ email }, updateUser, {
+        returnOriginal: false
+    });
+
     const result = {
-        email: user.email,
-        nom: user.lastname,
-        prenom: user.firstname,
-        phone: user.phone,
+        email: modifdUser.email,
+        nom: modifdUser.lastname,
+        prenom: modifdUser.firstname,
+        phone: modifdUser.phone,
         message: "Modification du compte réussie !",
     }
 
@@ -169,3 +179,81 @@ app.put("/api/user/edit", auth, async (req, res) => {
 });
 
 
+app.put("/api/user/edit-phone", auth, async (req, res) => {
+
+    var updateUser = {
+        phone: req.body.phone,
+    }
+
+    const email = req.user.email;
+
+    const modifdUser = await User.findOneAndUpdate({ email }, updateUser, {
+        returnOriginal: false
+    });
+    const result = {
+        phone: modifdUser.phone,
+    }
+
+    res.status(200).json(result);
+    return;
+});
+
+app.put("/api/user/edit-email", auth, async (req, res) => {
+    var updateUser = {
+
+        email: req.body.email
+    }
+    const email = req.user.email;
+
+    const modifdUser = await User.findOneAndUpdate({ email }, updateUser, {
+        returnOriginal: false
+    });
+    const result = {
+        email: modifdUser.email,
+    }
+
+    res.status(200).json(result);
+    return;
+});
+
+
+app.put("/api/user/edit-password", auth, async (req, res) => {
+    // Get user input
+    const { password, confirmPassword } = req.body;
+
+    // Validate user input
+    if (!(password)) {
+        res.status(400).send("All input is required");
+        return;
+    }
+    if (password == confirmPassword) {
+        res.status(400).send("not match");
+        return;
+    }
+    console.log(password, confirmPassword)
+
+    var updateUser = {
+        password: await argon2.hash(password),
+    }
+    const email = req.user.email;
+
+    await User.findOneAndUpdate({ email }, updateUser);
+    const result = {
+        message: "Mot de passe modifié !",
+    }
+
+    res.status(200).json(result);
+    return;
+});
+
+app.delete("/api/user/delete", auth, async (req, res) => {
+    const email = req.user.email;
+
+    await User.deleteMany({ email });
+    const result = {
+        message: "Votre profil a été supprimé ! Un email de confirmation de suppression vous a été envoyé"
+    }
+
+    res.status(200).json(result);
+    return;
+});
