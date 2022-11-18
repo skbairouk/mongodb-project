@@ -226,7 +226,7 @@ app.put("/api/user/edit-password", auth, async (req, res) => {
         res.status(400).send("All input is required");
         return;
     }
-    if (password == confirmPassword) {
+    if (password !== confirmPassword) {
         res.status(400).send("not match");
         return;
     }
